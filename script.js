@@ -91,7 +91,24 @@ class Game extends Phaser.Scene {
 			}
 		})
 		mainLayer.setCollisionBetween(0,999);
+
+		this.enemies = {}
+		this.socket.on('info', (data) => {
+			let playerId = data.playerId
+			console.log("updating pos")
+			if (!this.enemies[playerId]) {
+				console.log("added " + playerId)
+				this.enemies[playerId] = this.createEnemy(data);
+			} else {
+				console.log(data)
+				this.enemies[playerId].setPosition(data.x, data.y)
+			}
+		})
     }
+
+	createEnemy(data) {
+		return this.add.sprite(data.x, data.y, 'mask-dude-idle');
+	}
 
     update(time, delta) {
 		this.bg.tilePositionX = this.camera.scrollX / 2
@@ -124,11 +141,10 @@ class Game extends Phaser.Scene {
 		if (player.body.velocity.x === 0 && player.body.velocity.y === 0) {
 			player.play('mask-dude-idle', true)
 		}
-		this.socket.emit('info', {
-			x: player.body.position.x
+		this.socket.emit('send info', {
+			x: player.body.position.x,
 			y: player.body.position.y
 		})
-		
     }
 }
 
