@@ -1,4 +1,26 @@
-localStorage.debug = 'socket.io-client:socket'
+
+
+		
+let peer = new Peer();
+
+peer.on('open', function (id) {
+	console.log('ID: ' + peer.id);
+	document.getElementById("myId").innerHTML = "ID: " + peer.id;
+});
+
+let conn;
+
+function setupPeer() {
+	let id = document.getElementById("peerInput").value
+	console.log(id)
+	conn = peer.connect(id);
+	conn.on('open', function(){
+		console.log(conn.id)
+		setInterval(() => conn.send("hi"), 1000)
+	});
+}
+
+
 class Game extends Phaser.Scene {
     constructor () {
         super('Boot');
@@ -14,7 +36,6 @@ class Game extends Phaser.Scene {
 		this.load.image('terrain', 'assets/map/terrain.png');
 		this.load.tilemapTiledJSON('mapa', 'assets/map/2.json');
 		this.load.image('bullet', 'assets/spikeball.png');
-		this.socket = io("https://tgi-workbench.tgi-koding.repl.co/");
     }
 
     create(data) {
@@ -58,6 +79,8 @@ class Game extends Phaser.Scene {
 		// Player
 		const spawnPoint = this.map.findObject("objects", obj => obj.name === "Spawn Point");
 		this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, 'mask-dude-idle');
+		this.player.setVelocity(160)
+		this.player.play("mask-dude-run", true)
 
 		// Target
 		const targetPoint = this.map.findObject("objects", obj => obj.name === "target");
@@ -82,7 +105,9 @@ class Game extends Phaser.Scene {
 		
 		this.physics.add.collider(this.player, mainLayer)
 		this.physics.add.collider(this.target, mainLayer)
+
 		this.physics.add.collider(this.bullets, mainLayer, (bullet, layer) => bullet.destroy(true))
+
 		this.physics.add.collider(this.bullets, this.target, (target, bullet) => {
 			bullet.destroy(true)
 			target.alpha -= 0.4
@@ -92,23 +117,30 @@ class Game extends Phaser.Scene {
 		})
 		mainLayer.setCollisionBetween(0,999);
 
-		this.enemies = {}
-		this.socket.on('info', (data) => {
-			let playerId = data.playerId
-			console.log("updating pos")
-			if (!this.enemies[playerId]) {
-				console.log("added " + playerId)
-				this.enemies[playerId] = this.createEnemy(data);
-			} else {
-				console.log(data)
-				this.enemies[playerId].setPosition(data.x, data.y)
-			}
-		})
+		this.enemy = undefined
+		peer.on('connection', (c) => {
+			conn = c
+			conn.on('data', (data) => {
+				document.getElementById("dump").innerHTML = data
+				console.log(data);
+				let playerId = data.playerId
+				console.log("updating pos")
+				if (!this.enemy) {
+					this.enemy = this.add.sprite(data.x, data.y, 'mask-dude-idle');
+					this.enemy.setOrigin(0,0)
+				} else {
+					if (data.type == "move") {
+						this.enemy.setPosition(data.x, data.y)
+					} else if (data.type == "playAnimation"){
+						this.enemy.play(data.name, true)
+					} else if (data.type == "setFlipX"){
+						this.enemy.flipX = data.value
+					}
+				}
+			});
+		});
+		
     }
-
-	createEnemy(data) {
-		return this.add.sprite(data.x, data.y, 'mask-dude-idle');
-	}
 
     update(time, delta) {
 		this.bg.tilePositionX = this.camera.scrollX / 2
@@ -116,40 +148,70 @@ class Game extends Phaser.Scene {
 		let keys = this.keys;
 		let player = this.player;
 		if (keys.a.isDown) {
-			player.play('mask-dude-run', true)
-			player.flipX = true;
+			this.playAnimation('mask-dude-run', true)
+			this.setFlipX(true)
 			player.setVelocityX(-160);
 		}
 		else if (keys.d.isDown) {
-			player.play('mask-dude-run', true)
-			player.flipX = false;
+			this.playAnimation('mask-dude-run', true)
+			this.setFlipX(false)
 			player.setVelocityX(160);
 		} else {
-			player.setVelocityX(0);
+			//player.setVelocityX(0);
 		}
 		if (Phaser.Input.Keyboard.JustDown(keys.w)) {
 			if (player.body.blocked.down || player.body.touching.down) {
-				player.play('mask-dude-jump', true)
-				player.setVelocityY(-210);
+				this.playAnimation('mask-dude-jump', true)
+				player.setVelocityY(-230);
 			}
 		}
 		if (Phaser.Input.Keyboard.JustDown(keys.space)) {
-			let bullet = this.physics.add.image(player.body.position.x+10, player.body.position.y+15, 'bullet')
-			this.bullets.add(bullet)
-			bullet.setVelocityX(player.flipX ? -400 : 400)
+			if (player.flipX) {
+				let bullet = this.physics.add.image(player.x-10, player.y+5, 'bullet')
+				this.bullets.add(bullet)
+				bullet.setVelocityX(-400)
+			} else {
+				let bullet = this.physics.add.image(player.x+10, player.y+5, 'bullet')
+				this.bullets.add(bullet)
+				bullet.setVelocityX(400)
+			}
 		}
 		if (player.body.velocity.x === 0 && player.body.velocity.y === 0) {
-			player.play('mask-dude-idle', true)
+			this.playAnimation('mask-dude-idle')
 		}
-		this.socket.emit('send info', {
-			x: player.body.position.x,
-			y: player.body.position.y
-		})
+
+		if (conn) {
+			conn.send({
+				type: "move",
+				x: player.body.position.x,
+				y: player.body.position.y
+			})
+		}
     }
+
+	setFlipX(value) {
+		this.player.flipX = value
+		if (conn) {
+			conn.send({
+				type: "setFlipX",
+				value: value
+			})
+		}
+	}
+
+	playAnimation(name) {
+		this.player.play(name, true)
+		if (conn) {
+			conn.send({
+				type: "playAnimation",
+				name: name
+			})
+		}
+	}
 }
 
 const config = {
-    type: Phaser.AUTO,
+    type: Phaser.CANVAS,
     width: 500,
     height: 400,
     backgroundColor: '#f9f9f9',
@@ -163,6 +225,10 @@ const config = {
             debug: false
         }
     },
+	fps: {
+		target: 10,
+		min: 10,
+	},
     scene: [Game]
 };
 
