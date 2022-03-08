@@ -1,6 +1,4 @@
 
-
-		
 let peer = new Peer();
 
 peer.on('open', function (id) {
@@ -33,9 +31,11 @@ class Game extends Phaser.Scene {
 		this.load.spritesheet('mask-dude-jump', 'assets/mask-dude/jump.png', { frameWidth: 32, frameHeight: 32 });
 		this.load.atlasXML('players', 'assets/spritesheet_players.png', 'assets/spritesheet_players.xml');
 		this.load.image('bg-purple', 'assets/Background/Purple.png');
+		this.load.image('bg-yellow', 'assets/Background/Yellow.png');
 		this.load.image('terrain', 'assets/map/terrain.png');
 		this.load.tilemapTiledJSON('mapa', 'assets/map/2.json');
 		this.load.image('bullet', 'assets/spikeball.png');
+		this.load.spritesheet('apple', 'assets/fruits/apple.png', { frameWidth: 32, frameHeight: 32 });
     }
 
     create(data) {
@@ -49,7 +49,7 @@ class Game extends Phaser.Scene {
 		})
 
 		// Background
-		this.bg = this.add.tileSprite(0, 0, config.width*2, config.height*2, 'bg-purple')
+		this.bg = this.add.tileSprite(0, 0, config.width*2, config.height*2, 'bg-yellow')
 		this.bg.setScrollFactor(0)
 		this.bg.setOrigin(0, 0)
 		this.bg.setScale(0.5)
@@ -65,6 +65,14 @@ class Game extends Phaser.Scene {
 		// Run animation
 		let maskDudeRun = this.anims.generateFrameNames('mask-dude-run');
 		this.anims.create({ key: 'mask-dude-run', frames: maskDudeRun, frameRate: 20, repeat: -1 });
+		
+		// Apple animation
+		this.anims.create({
+			key: 'apple',
+			frames: this.anims.generateFrameNames('apple'),
+			frameRate: 20,
+			repeat: -1
+		});
 		
 		// Green guy (atlas)
 		let greenWalk = this.anims.generateFrameNames('players', {
@@ -93,20 +101,35 @@ class Game extends Phaser.Scene {
 		this.camera.startFollow(this.player, false, 0.5, 0.5)
 		this.camera.setZoom(1.5)
 
-		// Walls
-		this.wallGroup = this.physics.add.staticGroup()
-		this.physics.add.collider(this.wallGroup, this.player)
+		const goalRectangle = this.map.findObject("objects", obj => obj.name === "goal");
+		console.log("goalRectangle", goalRectangle)
+		this.goalZone = this.add.zone(goalRectangle.x, goalRectangle.y, goalRectangle.width, goalRectangle.height)
+		this.goalZone.setOrigin(0,0)
+		this.physics.add.existing(this.goalZone)
+	    this.goalZone.body.setAllowGravity(false);
+	    this.goalZone.body.moves = false;
 
-		this.box = this.add.rectangle(200, 300, 100, 100, 0xff66aa)
-		this.wallGroup.add(this.box)
+		// Coins
+		this.coinSprites = this.physics.add.group({ allowGravity: false, setImmovable: true })
+		let coinObjects = this.map.getObjectLayer('coins').objects
+		for (var coinObject of coinObjects) {
+			let coinSprite = this.physics.add.sprite(coinObject.x, coinObject.y, 'apple');
+			this.coinSprites.add(coinSprite)
+			coinSprite.play('apple')
+		}
 
 		// Bullets
 		this.bullets = this.physics.add.group({ allowGravity: false, setImmovable: true })
 		
 		this.physics.add.collider(this.player, mainLayer)
 		this.physics.add.collider(this.target, mainLayer)
+		
+		this.physics.add.overlap(this.coinSprites, this.player, (player, coin) => this.collectCoin(coin))
 
 		this.physics.add.collider(this.bullets, mainLayer, (bullet, layer) => bullet.destroy(true))
+		this.physics.add.overlap(this.player, this.goalZone, (a, b) => {
+			this.winGame()	
+		})
 
 		this.physics.add.collider(this.bullets, this.target, (target, bullet) => {
 			bullet.destroy(true)
@@ -139,7 +162,15 @@ class Game extends Phaser.Scene {
 				}
 			});
 		});
-		
+
+		this.score = 0;
+	    this.scoreText = this.add.text(
+	      config.width / 2, // x
+	      config.height - 100, // y
+	      'Score: 0', // text
+	      { font: "22px Arial Black", fill: "#fff"}); // Font settings
+		this.scoreText.setOrigin(0.5, 0.5)
+		this.scoreText.setScrollFactor(0)
     }
 
     update(time, delta) {
@@ -147,22 +178,22 @@ class Game extends Phaser.Scene {
 		this.bg.tilePositionY = this.camera.scrollY / 2
 		let keys = this.keys;
 		let player = this.player;
-		if (keys.a.isDown) {
+		if (false && keys.a.isDown) {
 			this.playAnimation('mask-dude-run', true)
 			this.setFlipX(true)
 			player.setVelocityX(-160);
 		}
-		else if (keys.d.isDown) {
+		else if (false && keys.d.isDown) {
 			this.playAnimation('mask-dude-run', true)
 			this.setFlipX(false)
 			player.setVelocityX(160);
 		} else {
 			//player.setVelocityX(0);
 		}
-		if (Phaser.Input.Keyboard.JustDown(keys.w)) {
+		if (keys.w.isDown || this.input.activePointer.isDown) {
 			if (player.body.blocked.down || player.body.touching.down) {
 				this.playAnimation('mask-dude-jump', true)
-				player.setVelocityY(-230);
+				player.setVelocityY(-270);
 			}
 		}
 		if (Phaser.Input.Keyboard.JustDown(keys.space)) {
@@ -179,6 +210,12 @@ class Game extends Phaser.Scene {
 		if (player.body.velocity.x === 0 && player.body.velocity.y === 0) {
 			this.playAnimation('mask-dude-idle')
 		}
+
+		if (player.body.blocked.right) {
+			this.loseGame()
+		}
+
+		this.scoreText.setText("Score: " + this.score)
 
 		if (conn) {
 			conn.send({
@@ -208,6 +245,34 @@ class Game extends Phaser.Scene {
 			})
 		}
 	}
+
+	collectCoin(coin) {
+		this.score = this.score + 1;
+		coin.destroy(true)
+	}
+
+	loseGame() {
+		this.player.setVelocityX(0)
+		this.player.play('mask-dude-idle', true)
+	    const text = this.add.text(
+	      config.width / 2, // width
+	      100, // height
+	      'GAME OVER', // text
+	      { font: "22px Arial Black", fill: "#fff"}); // Font settings
+		text.setOrigin(0.5, 0.5)
+		text.setScrollFactor(0)
+	}
+	
+	winGame() {
+		this.player.setVelocityX(0)
+		this.player.play('mask-dude-idle', true)
+	    const text = this.add.text(
+	      config.width / 2,
+	      100,
+	      'YOU WON',
+	      { font: "22px Arial Black", fill: "#fff"}).setOrigin(0.5, 0.5);
+		text.setScrollFactor(0)
+	}
 }
 
 const config = {
@@ -226,8 +291,8 @@ const config = {
         }
     },
 	fps: {
-		target: 10,
-		min: 10,
+		target: 30,
+		min: 30,
 	},
     scene: [Game]
 };
