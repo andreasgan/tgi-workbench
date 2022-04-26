@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "phaser": "^3.55.2"
+  },
+  "eslintConfig": {
+      "globals": {
+          "phaser": true
+      }
+  }
+}
