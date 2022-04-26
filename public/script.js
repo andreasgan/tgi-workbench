@@ -8,6 +8,7 @@ class Game extends Phaser.Scene {
 	// Preload() runs before the game starts
 	// Used for preloading assets into your scene, such as images and sounds.
     preload() {
+		
 		this.load.spritesheet('mask-dude-idle', 'assets/mask-dude/idle.png', { frameWidth: 32, frameHeight: 32 });
 		this.load.spritesheet('mask-dude-run', 'assets/mask-dude/run.png', { frameWidth: 32, frameHeight: 32 });
 		this.load.spritesheet('mask-dude-jump', 'assets/mask-dude/jump.png', { frameWidth: 32, frameHeight: 32 });

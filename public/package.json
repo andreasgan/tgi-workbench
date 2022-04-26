@@ -9,7 +9,6 @@
     }
   },
   "scripts": {
-    "dev": "http-server ./public",
-    "build": "./build.sh"
+    "dev": "http-server"
   }
 }
