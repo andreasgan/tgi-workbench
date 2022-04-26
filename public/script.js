@@ -47,7 +47,6 @@ class Game extends Phaser.Scene {
 		// Run animation
 		let maskDudeRun = this.anims.generateFrameNames('mask-dude-run');
 		this.anims.create({ key: 'mask-dude-run', frames: maskDudeRun, frameRate: 20, repeat: -1 });
-		
 		// Player
 		const spawnPoint = this.map.findObject("Objects", obj => obj.name === "Spawn Point");
 		this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, 'mask-dude-idle');
