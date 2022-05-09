@@ -9,6 +9,6 @@
     }
   },
   "scripts": {
-    "dev": "http-server"
+    "dev": "http-server -c-1"
   }
 }

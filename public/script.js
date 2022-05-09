@@ -1,4 +1,4 @@
-
+import Player from './player.js'
 
 class Game extends Phaser.Scene {
     constructor () {
@@ -8,7 +8,6 @@ class Game extends Phaser.Scene {
 	// Preload() runs before the game starts
 	// Used for preloading assets into your scene, such as images and sounds.
     preload() {
-		
 		this.load.spritesheet('mask-dude-idle', 'assets/mask-dude/idle.png', { frameWidth: 32, frameHeight: 32 });
 		this.load.spritesheet('mask-dude-run', 'assets/mask-dude/run.png', { frameWidth: 32, frameHeight: 32 });
 		this.load.spritesheet('mask-dude-jump', 'assets/mask-dude/jump.png', { frameWidth: 32, frameHeight: 32 });
@@ -50,9 +49,7 @@ class Game extends Phaser.Scene {
 		this.anims.create({ key: 'mask-dude-run', frames: maskDudeRun, frameRate: 20, repeat: -1 });
 		// Player
 		const spawnPoint = this.map.findObject("Objects", obj => obj.name === "Spawn Point");
-		this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, 'mask-dude-idle');
-		this.player.setVelocity(160)
-		this.player.play("mask-dude-run", true)
+		this.player = new Player(this, spawnPoint.x, spawnPoint.y);
 		
 		// Camera
 		this.camera = this.cameras.main;
@@ -87,45 +84,26 @@ class Game extends Phaser.Scene {
 
 	// Update() runs many times per second
     update(time, delta) {
+		let keys = this.keys;
 		this.bg.tilePositionX = this.camera.scrollX / 2
 		this.bg.tilePositionY = this.camera.scrollY / 2
-		let keys = this.keys;
-		let player = this.player;
-		if (keys.a.isDown) {
-			player.play('mask-dude-run', true)
-			player.flipX = true
-			player.setVelocityX(-160);
-		}
-		else if (keys.d.isDown) {
-			player.play('mask-dude-run', true)
-			player.flipX = false
-			player.setVelocityX(160);
-		} else {
-			player.setVelocityX(0);
-		}
-		if (keys.w.isDown) {
-			if (player.body.blocked.down || player.body.touching.down) {
-				player.setVelocityY(-270);
-			}
-		}
+		this.player.update()
+		
 		if (Phaser.Input.Keyboard.JustDown(keys.q)) {
 			let bullet = this.physics.add.sprite(this.player.x, this.player.y, 'bullet')
 			bullet.special = true
 			this.bullets.add(bullet)
 		}
 		if (Phaser.Input.Keyboard.JustDown(keys.space)) {
-			if (player.flipX) {
-				let bullet = this.physics.add.image(player.x-10, player.y, 'bullet')
+			if (this.player.flipX) {
+				let bullet = this.physics.add.image(this.player.x-10, this.player.y, 'bullet')
 				this.bullets.add(bullet)
 				bullet.setVelocityX(-400)
 			} else {
-				let bullet = this.physics.add.image(player.x+10, player.y, 'bullet')
+				let bullet = this.physics.add.image(this.player.x+10, this.player.y, 'bullet')
 				this.bullets.add(bullet)
 				bullet.setVelocityX(400)
 			}
-		}
-		if (player.body.velocity.x === 0 && player.body.velocity.y === 0) {
-			player.play('mask-dude-idle', true)
 		}
 
 		this.scoreText.setText("Score: " + this.score)
