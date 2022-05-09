@@ -1,7 +1,7 @@
 
 tasks:
   - init: cd public && npm install
-    command: cd public && npm run dev
+    command: npm run dev
 vscode:
   extensions:
     - dbaeumer.vscode-eslint
