@@ -1,4 +1,5 @@
 require('dotenv').config()
+var cors = require('cors');
 
 const express = require("express");
 const path = require("path");
@@ -33,8 +34,9 @@ bot.on("inline_query", function(iq) {
 // make the files in the folder 'public' accessible
 server.use(express.static(path.join(__dirname, '../public')));
 
-// add json support
+// add json support and cors
 server.use(express.json());
+server.use(cors());
 
 // register the route which receives bot updates from telegram
 server.post(`/bot${TOKEN}`, (req, res) => {
