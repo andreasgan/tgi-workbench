@@ -1,7 +1,7 @@
 
 tasks:
-  - init: cd public && npm install
-    command: npm run dev
+  - init: cd /workspace/tgi-workbench/public && npm install
+    command: cd /workspace/tgi-workbench/public && npm run dev
 ports:
   - port: 8080
     visibility: private
