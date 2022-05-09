@@ -1,9 +1,11 @@
+require('dotenv').config()
+
 const express = require("express");
 const path = require("path");
 const TelegramBot = require("node-telegram-bot-api");
 
 const TOKEN = process.env.BOT_API_TOKEN;
-const SERVER_URL = process.env.RENDER_EXTERNAL_URL;
+const SERVER_URL = process.env.EXTERNAL_URL || process.env.RENDER_EXTERNAL_URL;
 const server = express();
 const bot = new TelegramBot(TOKEN);
 bot.setWebHook(`${SERVER_URL}/bot${TOKEN}`);
@@ -59,6 +61,7 @@ server.get("/highscore/:score", function(req, res, next) {
             console.log("err", err)
             console.log("result", result)
         });
+    res.sendStatus(200);
 });
 
 server.listen(PORT);
