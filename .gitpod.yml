@@ -4,6 +4,7 @@ tasks:
     command: npm run dev
 ports:
   - port: 8080
+    visibility: private
     onOpen: open-preview
 vscode:
   extensions:
