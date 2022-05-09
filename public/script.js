@@ -1,8 +1,8 @@
 import Player from './player.js'
 
-class Game extends Phaser.Scene {
+class MainScene extends Phaser.Scene {
     constructor () {
-        super('Boot');
+        super('main');
     }
 
 	// Preload() runs before the game starts
@@ -133,6 +133,7 @@ class Game extends Phaser.Scene {
 	}
 }
 
+/** @type Phaser.Types.Core.GameConfig */
 const config = {
     width: 600,
     height: 400,
@@ -151,7 +152,7 @@ const config = {
 		target: 30,
 		min: 30,
 	},
-    scene: [Game]
+    scene: [MainScene]
 };
 
 const game = new Phaser.Game(config);
