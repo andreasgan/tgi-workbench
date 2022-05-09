@@ -108,6 +108,12 @@ class MainScene extends Phaser.Scene {
 
 		this.scoreText.setText("Score: " + this.score)
     }
+	
+	async setHighScore(score) {
+		var url = window.location.pathname
+		var query = url.split('?')[1]
+		await fetch(`https://tgigame.onrender.com/highscore/${score}?${query}`)
+	}
 
 	loseGame() {
 		this.player.setVelocityX(0)
@@ -156,3 +162,5 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
+window.game = game;

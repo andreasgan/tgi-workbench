@@ -3,32 +3,29 @@ const path = require("path");
 const TelegramBot = require("node-telegram-bot-api");
 
 const TOKEN = process.env.BOT_API_TOKEN;
-const url = process.env.RENDER_EXTERNAL_URL;
+const SERVER_URL = process.env.RENDER_EXTERNAL_URL;
 const server = express();
 const bot = new TelegramBot(TOKEN);
-bot.setWebHook(`${url}/bot${TOKEN}`);
+bot.setWebHook(`${SERVER_URL}/bot${TOKEN}`);
 
-const port = process.env.PORT || 5000;
-const gameName = "dev";
-
-const queries = {};
+const PORT = process.env.PORT || 5000;
+const GAME_NAME = "dev";
+const GAME_URL = "https://tgi-dev.onrender.com";
 
 bot.onText(/help/, (msg) => bot.sendMessage(msg.from.id, "This bot implements a game. Say /game if you want to play."));
 
-bot.onText(/start|game/, (msg) => bot.sendGame(msg.from.id, gameName));
+bot.onText(/start|game/, (msg) => bot.sendGame(msg.from.id, GAME_NAME));
 bot.on("callback_query", function (query) {
-    if (query.game_short_name !== gameName) {
+    if (query.game_short_name !== GAME_NAME) {
         bot.answerCallbackQuery(query.id, "Sorry, '" + query.game_short_name + "' is not available.");
     } else {
-        queries[query.id] = query;
-        let gameurl = "https://tgi-dev.onrender.com/?id="+query.id;
         bot.answerCallbackQuery(query.id, {
-            url: gameurl
+            url: `${GAME_URL}?chat_id=${query.message?.chat.id ?? ''}&message_id=${query.message?.message_id ?? ''}&inline_message_id=${query.inline_message_id ?? ''}`
         });
     }
 });
 bot.on("inline_query", function(iq) {
-      bot.answerInlineQuery(iq.id, [ { type: "game", id: "0", game_short_name: gameName } ] ); 
+      bot.answerInlineQuery(iq.id, [ { type: "game", id: "0", game_short_name: GAME_NAME } ] ); 
 });
 
 // make the files in the folder 'public' accessible
@@ -45,21 +42,23 @@ server.post(`/bot${TOKEN}`, (req, res) => {
 
 // endpoint to set highscore
 server.get("/highscore/:score", function(req, res, next) {
-    if (!Object.hasOwnProperty.call(queries, req.query.id)) return next();
-    let query = queries[req.query.id];
+    if (!req.query.chat_id && !req.query.message_id && !req.query.inline_message_id) return next();
     let options;
-    if (query.message) {
+    if (req.query.chat_id) {
         options = {
-            chat_id: query.message.chat.id,
-            message_id: query.message.message_id
+            chat_id: req.query.chat_id,
+            message_id: req.query.message_id
         };
     } else {
         options = {
-            inline_message_id: query.inline_message_id
+            inline_message_id: req.query.inline_message_id
         };
     }
     bot.setGameScore(query.from.id, parseInt(req.params.score), options, 
-        function (err, result) {});
+        function (err, result) {
+            console.log("err", err)
+            console.log("result", result)
+        });
 });
 
-server.listen(port);
+server.listen(PORT);
