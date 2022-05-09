@@ -110,9 +110,7 @@ class MainScene extends Phaser.Scene {
     }
 	
 	async setHighScore(score) {
-		var url = window.location.pathname
-		var query = url.split('?')[1]
-		await fetch(`https://tgigame.onrender.com/highscore/${score}?${query}`)
+		await fetch(`https://tgigame.onrender.com/highscore/${score}?${window.location.search}`)
 	}
 
 	loseGame() {
