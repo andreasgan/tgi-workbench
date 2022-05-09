@@ -114,7 +114,7 @@ class MainScene extends Phaser.Scene {
 	
 	async setHighScore(score) {
 		let url = 'https://tgigame.onrender.com/highscore'
-		if (window.location.search.includes('gitpod')) {
+		if (window.location.hostname.includes('gitpod')) {
 			url = 'https://5000-andreasgan-tgiworkbench-q4ksoso37ck.ws-eu44.gitpod.io/highscore'
 		}
 		await fetch(`${url}/${score}${window.location.search}`)
