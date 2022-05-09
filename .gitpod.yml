@@ -9,3 +9,4 @@ ports:
 vscode:
   extensions:
     - dbaeumer.vscode-eslint
+    - eamodio.gitlens
