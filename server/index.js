@@ -12,7 +12,7 @@ bot.setWebHook(`${SERVER_URL}/bot${TOKEN}`);
 
 const PORT = process.env.PORT || 5000;
 const GAME_NAME = "dev";
-const GAME_URL = "https://tgi-dev.onrender.com";
+const GAME_URL = process.env.GAME_URL || "https://tgi-dev.onrender.com";
 
 bot.onText(/help/, (msg) => bot.sendMessage(msg.from.id, "This bot implements a game. Say /game if you want to play."));
 

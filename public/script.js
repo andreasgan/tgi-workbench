@@ -117,7 +117,7 @@ class MainScene extends Phaser.Scene {
 	}
 
 	loseGame() {
-		setHighScore(this.score)
+		this.setHighScore(this.score)
 		this.player.setVelocityX(0)
 		this.player.play('mask-dude-idle', true)
 	    const text = this.add.text(
@@ -130,7 +130,7 @@ class MainScene extends Phaser.Scene {
 	}
 	
 	winGame() {
-		setHighScore(this.score)
+		this.setHighScore(this.score)
 		this.player.setVelocityX(0)
 		this.player.play('mask-dude-idle', true)
 	    const text = this.add.text(
