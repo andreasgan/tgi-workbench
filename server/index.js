@@ -20,7 +20,7 @@ bot.on("callback_query", function (query) {
         bot.answerCallbackQuery(query.id, "Sorry, '" + query.game_short_name + "' is not available.");
     } else {
         bot.answerCallbackQuery(query.id, {
-            url: `${GAME_URL}?chat_id=${query.message?.chat.id ?? ''}&message_id=${query.message?.message_id ?? ''}&inline_message_id=${query.inline_message_id ?? ''}`
+            url: `${GAME_URL}?from_id=${query.from.id}&chat_id=${query.message?.chat.id ?? ''}&message_id=${query.message?.message_id ?? ''}&inline_message_id=${query.inline_message_id ?? ''}`
         });
     }
 });
@@ -54,7 +54,7 @@ server.get("/highscore/:score", function(req, res, next) {
             inline_message_id: req.query.inline_message_id
         };
     }
-    bot.setGameScore(query.from.id, parseInt(req.params.score), options, 
+    bot.setGameScore(req.query.from_id, parseInt(req.params.score), options, 
         function (err, result) {
             console.log("err", err)
             console.log("result", result)
