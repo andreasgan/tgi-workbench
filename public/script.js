@@ -67,7 +67,10 @@ class MainScene extends Phaser.Scene {
 		// Put tile on click
 		this.input.on(Phaser.Input.Events.POINTER_UP, (pointer) => {
 			if (!mainLayer.hasTileAtWorldXY(pointer.worldX, pointer.worldY)) {
+				this.score++
 				mainLayer.putTileAtWorldXY(211, pointer.worldX, pointer.worldY)
+			} else {
+				this.loseGame()
 			}
 		})
 
@@ -114,6 +117,7 @@ class MainScene extends Phaser.Scene {
 	}
 
 	loseGame() {
+		setHighScore(this.score)
 		this.player.setVelocityX(0)
 		this.player.play('mask-dude-idle', true)
 	    const text = this.add.text(
@@ -126,6 +130,7 @@ class MainScene extends Phaser.Scene {
 	}
 	
 	winGame() {
+		setHighScore(this.score)
 		this.player.setVelocityX(0)
 		this.player.play('mask-dude-idle', true)
 	    const text = this.add.text(
