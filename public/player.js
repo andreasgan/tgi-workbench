@@ -8,6 +8,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       this.setTexture('mask-dude-idle')
       scene.add.existing(this)
       scene.physics.add.existing(this)
+      this.setInteractive()
+      this.on('pointerdown', (pointer) => {
+          
+            this.setTint(0xff0000);
+            this.setVelocityY(-400)
+
+        });
     }
 
     update() {
