@@ -1,4 +1,5 @@
 import Player from './player.js'
+import {RectangleButton} from './RectangleButton.js'
 
 class MainScene extends Phaser.Scene {
     constructor () {
@@ -15,6 +16,7 @@ class MainScene extends Phaser.Scene {
 		this.load.image('terrain', 'assets/map/terrain.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/map.json');
 		this.load.image('bullet', 'assets/spikeball.png');
+		RectangleButton.preload(this)
     }
 
 	// Create() runs when we start the game
