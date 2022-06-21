@@ -149,9 +149,12 @@ class MainScene extends Phaser.Scene {
 }
 
 /** @type Phaser.Types.Core.GameConfig */
-const config = {
+const config = {/* 
     width: 600,
-    height: 400,
+    height: 400, */
+	scale: {
+		mode: Phaser.Scale.ScaleModes.RESIZE,
+	},
     backgroundColor: '#f9f9f9',
 	pixelArt: true,
     physics: {

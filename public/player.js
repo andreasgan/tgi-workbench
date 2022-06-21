@@ -26,8 +26,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 			console.log("mobile")
 		}
 		if (!scene.sys.game.device.os.desktop) {
-			this.buttonRight = new RectangleButton(scene, 
-				config.width*0.75, // x
+			this.buttonRight = new RectangleButton(
+				scene, 
+				this.scene.sys.game.canvas.width*0.75, // x
 				config.height*0.75, // y
 				 "👉");
 			this.buttonRight.on("pointerdown", () => {
@@ -37,7 +38,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 				this.stopMovement()
 			})
 			this.buttonLeft = new RectangleButton(scene, 
-				config.width*0.25, // x
+				this.scene.sys.game.canvas.width*0.25, // x
 				config.height*0.75, // y
 				 "👈");
 			this.buttonLeft.on("pointerdown", () => {
